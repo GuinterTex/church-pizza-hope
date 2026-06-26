@@ -1,0 +1,237 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Check, Upload, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { enviarPedido } from "@/services/pedidos";
+
+export const Route = createFileRoute("/formulario")({
+  head: () => ({
+    meta: [
+      { title: "Enviar comprovante — Pizza Solidária" },
+      {
+        name: "description",
+        content: "Confirme seu pagamento e envie o comprovante da Pizza Solidária.",
+      },
+    ],
+  }),
+  component: FormularioPage,
+});
+
+const MAX_BYTES = 10 * 1024 * 1024;
+const ALLOWED = ["image/jpeg", "image/png", "application/pdf"];
+
+const schema = z.object({
+  nome: z.string().trim().min(2, "Informe seu nome completo").max(120),
+  telefone: z
+    .string()
+    .trim()
+    .min(10, "Telefone inválido")
+    .max(20, "Telefone inválido"),
+});
+
+function FormularioPage() {
+  const [confirmed, setConfirmed] = useState(false);
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  function handleFile(file: File | null) {
+    if (!file) {
+      setArquivo(null);
+      return;
+    }
+    if (!ALLOWED.includes(file.type)) {
+      toast.error("Formato não suportado", {
+        description: "Envie um arquivo JPG, PNG ou PDF.",
+      });
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      toast.error("Arquivo muito grande", { description: "O limite é 10 MB." });
+      return;
+    }
+    setArquivo(file);
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const parsed = schema.safeParse({ nome, telefone });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Verifique os dados");
+      return;
+    }
+    if (!arquivo) {
+      toast.error("Anexe seu comprovante de pagamento");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone, arquivo });
+      setDone(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro inesperado";
+      toast.error("Não foi possível enviar", { description: message });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (done) {
+    return <SuccessScreen />;
+  }
+
+  return (
+    <main className="min-h-screen w-full px-6 py-10 md:py-16">
+      <div className="mx-auto w-full max-w-xl">
+        <Link
+          to="/"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </Link>
+
+        <div className="fade-in rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-soft)] md:p-9">
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+            Enviar comprovante
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Antes de continuar, confirme que o pagamento já foi realizado. Isso leva menos de 1
+            minuto.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Você já realizou o pagamento?
+              </p>
+              <button
+                type="button"
+                onClick={() => setConfirmed(true)}
+                disabled={confirmed}
+                className="mt-3 inline-flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-5 py-3 text-sm font-medium text-accent transition-all hover:scale-[1.02] hover:bg-accent/20 disabled:cursor-default disabled:opacity-100"
+              >
+                {confirmed ? <Check className="h-4 w-4" /> : null}
+                {confirmed ? "Pagamento confirmado" : "Sim, já realizei o pagamento"}
+              </button>
+            </div>
+
+            <fieldset
+              disabled={!confirmed}
+              className="space-y-5 transition-opacity disabled:opacity-50"
+            >
+              <Field label="Nome completo" htmlFor="nome">
+                <input
+                  id="nome"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="João da Silva"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/30"
+                />
+              </Field>
+
+              <Field label="Telefone" htmlFor="telefone">
+                <input
+                  id="telefone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="(45) 99999-9999"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/30"
+                />
+              </Field>
+
+              <Field label="Comprovante de pagamento" htmlFor="arquivo">
+                <label
+                  htmlFor="arquivo"
+                  className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-border bg-background px-4 py-4 text-sm transition-colors hover:border-accent/60"
+                >
+                  <span className="flex items-center gap-3 text-muted-foreground">
+                    <Upload className="h-4 w-4" />
+                    {arquivo ? (
+                      <span className="text-foreground">{arquivo.name}</span>
+                    ) : (
+                      <span>Selecione seu comprovante</span>
+                    )}
+                  </span>
+                  <span className="text-xs text-muted-foreground">JPG · PNG · PDF · 10 MB</span>
+                </label>
+                <input
+                  id="arquivo"
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  className="sr-only"
+                  onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+                />
+              </Field>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-base font-medium text-primary-foreground transition-all hover:scale-[1.02] hover:bg-[oklch(0.65_0.15_148)] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Enviando...
+                  </>
+                ) : (
+                  "Enviar comprovante"
+                )}
+              </button>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={htmlFor} className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function SuccessScreen() {
+  return (
+    <main className="flex min-h-screen items-center justify-center px-6 py-16">
+      <div className="fade-in w-full max-w-md rounded-2xl border border-border bg-card p-9 text-center shadow-[var(--shadow-soft)]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <CheckCircle2 className="h-7 w-7" />
+        </div>
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight">Pagamento registrado</h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          Seu comprovante foi enviado com sucesso. Nossa equipe fará a conferência do pagamento.
+          <br />
+          <br />
+          Muito obrigado por contribuir com nossa missão. Que Deus abençoe sua família.
+        </p>
+        <Link
+          to="/"
+          className="mt-8 inline-flex items-center justify-center rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+        >
+          Voltar ao início
+        </Link>
+      </div>
+    </main>
+  );
+}
