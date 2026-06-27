@@ -15,13 +15,7 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
-
-# Wrangler / Cloudflare
-.wrangler/
-.dev.vars
-
-# Editor directories and files
-.vscode/*
+ netlify/functions/dist
 !.vscode/extensions.json
 .idea
 .DS_Store
