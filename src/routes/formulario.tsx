@@ -32,7 +32,7 @@ function FormularioPage() {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
+  const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -44,17 +44,13 @@ function FormularioPage() {
     setSubmitting(true);
     try {
       await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone });
-      setDone(true);
+      setPedidoConfirmado(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro inesperado";
       toast.error("Não foi possível enviar", { description: message });
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (done) {
-    return <SuccessScreen />;
   }
 
   return (
@@ -136,6 +132,42 @@ function FormularioPage() {
               </button>
             </fieldset>
           </form>
+
+          {pedidoConfirmado && (
+            <div
+              className="mt-8 rounded-[20px] border border-border bg-card p-6 shadow-[var(--shadow-soft)]"
+              role="status"
+              aria-live="polite"
+            >
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FCD201] text-[#0F1115]">
+                <span className="text-3xl font-bold">✓</span>
+              </div>
+              <h2 className="mt-6 text-2xl font-bold tracking-tight text-foreground">
+                Contribuição registrada!
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Obrigado por fazer parte. Baixe seu ticket de retirada e apresente no dia para
+                retirar sua pizza.
+              </p>
+              <a
+                href="/ticket-retirada.png"
+                download="ticket-retirada-lagoinha.png"
+                className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-[#FCD201] px-5 py-4 text-base font-bold text-[#0F1115] transition hover:bg-[#e6c00d] focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              >
+                Baixar meu ticket
+              </a>
+              <p className="mt-4 text-sm text-muted-foreground">
+                Retirada em 22/08, das 14h às 15h, na Av. José João Muraro, 1658.
+              </p>
+              <button
+                type="button"
+                onClick={() => setPedidoConfirmado(false)}
+                className="mt-4 text-sm font-medium text-primary underline-offset-4 transition hover:underline"
+              >
+                Refazer pedido
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </main>
