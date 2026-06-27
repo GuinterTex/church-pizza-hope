@@ -1,5 +1,5 @@
 async function getServer() {
-  const serverModule = await import('../../dist/server/server.js');
+  const serverModule = await import('./dist/server/server.js');
   const server = serverModule.default ?? serverModule;
   if (typeof server.fetch === 'function') return server;
   if (server && typeof server.default?.fetch === 'function') return server.default;
