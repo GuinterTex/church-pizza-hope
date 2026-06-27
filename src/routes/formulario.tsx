@@ -32,7 +32,21 @@ function FormularioPage() {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [dadosEnviados, setDadosEnviados] = useState<{ nome: string; telefone: string } | null>(null);
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
+
+  const pedidoEnviado =
+    !!dadosEnviados &&
+    dadosEnviados.nome === nome &&
+    dadosEnviados.telefone === telefone;
+
+  function resetarFluxo() {
+    setNome("");
+    setTelefone("");
+    setDadosEnviados(null);
+    setPedidoConfirmado(false);
+    setConfirmed(false);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -44,6 +58,7 @@ function FormularioPage() {
     setSubmitting(true);
     try {
       await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone });
+      setDadosEnviados({ nome: parsed.data.nome, telefone: parsed.data.telefone });
       setPedidoConfirmado(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro inesperado";
@@ -51,6 +66,20 @@ function FormularioPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleBaixarTicket() {
+    const link = document.createElement("a");
+    link.href = "/ticket-retirada.png";
+    link.download = "ticket-retirada-lagoinha.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+      resetarFluxo();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 300);
   }
 
   return (
@@ -97,7 +126,7 @@ function FormularioPage() {
                   id="nome"
                   type="text"
                   autoComplete="name"
-                  placeholder="João da Silva"
+                  placeholder="Coloque seu nome completo"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/30"
@@ -119,10 +148,13 @@ function FormularioPage() {
 
               <button
                 type="submit"
-                disabled={submitting}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-base font-medium text-primary-foreground transition-all hover:scale-[1.02] hover:bg-[oklch(0.65_0.15_148)] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
+                disabled={submitting || pedidoEnviado}
+                aria-disabled={submitting || pedidoEnviado}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-base font-medium text-primary-foreground transition-all hover:scale-[1.02] hover:bg-[oklch(0.65_0.15_148)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 ${submitting || pedidoEnviado ? "cursor-not-allowed opacity-60" : ""}`}
               >
-                {submitting ? (
+                {pedidoEnviado ? (
+                  "Seu pedido foi enviado"
+                ) : submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Enviando...
                   </>
@@ -149,13 +181,13 @@ function FormularioPage() {
                 Obrigado por fazer parte. Baixe seu ticket de retirada e apresente no dia para
                 retirar sua pizza.
               </p>
-              <a
-                href="/ticket-retirada.png"
-                download="ticket-retirada-lagoinha.png"
+              <button
+                type="button"
+                onClick={handleBaixarTicket}
                 className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-[#FCD201] px-5 py-4 text-base font-bold text-[#0F1115] transition hover:bg-[#e6c00d] focus:outline-none focus:ring-2 focus:ring-yellow-300"
               >
                 Baixar meu ticket
-              </a>
+              </button>
               <p className="mt-4 text-sm text-muted-foreground">
                 Retirada em 22/08, das 14h às 15h, na Av. José João Muraro, 1658.
               </p>
@@ -164,7 +196,7 @@ function FormularioPage() {
                 onClick={() => setPedidoConfirmado(false)}
                 className="mt-4 text-sm font-medium text-primary underline-offset-4 transition hover:underline"
               >
-                Refazer pedido
+                Fazer novo pedido
               </button>
             </div>
           )}
