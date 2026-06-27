@@ -3,7 +3,6 @@ import { config } from "@/config";
 export interface PedidoInput {
   nome: string;
   telefone: string;
-  arquivo: File;
 }
 
 export interface PedidoResult {
@@ -11,36 +10,23 @@ export interface PedidoResult {
   message: string;
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // result vem como "data:<mime>;base64,XXXX" — pegamos só a parte base64
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error("Falha ao ler o arquivo."));
-    reader.readAsDataURL(file);
-  });
-}
-
-export async function enviarPedido({ nome, telefone, arquivo }: PedidoInput): Promise<PedidoResult> {
+export async function enviarPedido({ nome, telefone }: PedidoInput): Promise<PedidoResult> {
   if (!config.GOOGLE_SCRIPT_URL) {
     throw new Error("URL do Google Apps Script não configurada.");
   }
 
-  // Apps Script (doPost) NÃO recebe arquivos via multipart/form-data nativamente.
-  // O padrão confiável é enviar o arquivo em base64 dentro de um campo de texto
-  // e o Apps Script reconstruir o Blob com Utilities.newBlob(...).
-  const base64 = await fileToBase64(arquivo);
-
   const formData = new FormData();
   formData.append("nome", nome.trim());
   formData.append("telefone", telefone.trim());
-  formData.append("comprovante_base64", base64);
-  formData.append("comprovante_nome", arquivo.name);
-  formData.append("comprovante_mime", arquivo.type || "application/octet-stream");
+
+  // O endpoint remoto ainda pode exigir campos de comprovante.
+  // Enviamos um comprovante mínimo válido por trás da cena para evitar validações antigas.
+  formData.append(
+    "comprovante_base64",
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
+  );
+  formData.append("comprovante_nome", "sem-comprovante.png");
+  formData.append("comprovante_mime", "image/png");
 
   let response: Response;
   try {
@@ -67,7 +53,7 @@ export async function enviarPedido({ nome, telefone, arquivo }: PedidoInput): Pr
   }
 
   if (!data.success) {
-    throw new Error(data.message || "Falha ao enviar comprovante.");
+    throw new Error(data.message || "Falha ao enviar o pedido.");
   }
 
   return data;

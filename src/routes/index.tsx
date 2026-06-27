@@ -48,7 +48,7 @@ function IndexPage() {
     setCopied(true);
     toast.success("Chave PIX copiada", {
       description:
-        "Abra seu banco, realize o pagamento e em seguida enviaremos você para o envio do comprovante.",
+        "Abra seu banco, realize o pagamento e em seguida prosseguiremos para finalizar seu pedido.",
     });
     setCounting(true);
   }
@@ -128,8 +128,8 @@ function IndexPage() {
             {counting && (
               <div className="fade-in mt-7 space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Estamos preparando a próxima etapa. Você será redirecionado para enviar seu
-                  comprovante.
+                  Estamos preparando a próxima etapa. Você será redirecionado para completar seu
+                  pedido.
                 </p>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                   <div

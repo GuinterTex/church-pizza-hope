@@ -2,24 +2,21 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Check, Upload, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { Check, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { enviarPedido } from "@/services/pedidos";
 
 export const Route = createFileRoute("/formulario")({
   head: () => ({
     meta: [
-      { title: "Enviar comprovante — Pizza Solidária" },
+      { title: "Concluir pedido — Pizza Solidária" },
       {
         name: "description",
-        content: "Confirme seu pagamento e envie o comprovante da Pizza Solidária.",
+        content: "Finalize seu pedido informando seu nome e telefone.",
       },
     ],
   }),
   component: FormularioPage,
 });
-
-const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED = ["image/jpeg", "image/png", "application/pdf"];
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(120),
@@ -34,27 +31,8 @@ function FormularioPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [arquivo, setArquivo] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-
-  function handleFile(file: File | null) {
-    if (!file) {
-      setArquivo(null);
-      return;
-    }
-    if (!ALLOWED.includes(file.type)) {
-      toast.error("Formato não suportado", {
-        description: "Envie um arquivo JPG, PNG ou PDF.",
-      });
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      toast.error("Arquivo muito grande", { description: "O limite é 10 MB." });
-      return;
-    }
-    setArquivo(file);
-  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -63,13 +41,9 @@ function FormularioPage() {
       toast.error(parsed.error.issues[0]?.message ?? "Verifique os dados");
       return;
     }
-    if (!arquivo) {
-      toast.error("Anexe seu comprovante de pagamento");
-      return;
-    }
     setSubmitting(true);
     try {
-      await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone, arquivo });
+      await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone });
       setDone(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro inesperado";
@@ -95,7 +69,7 @@ function FormularioPage() {
 
         <div className="fade-in rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-soft)] md:p-9">
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            Enviar comprovante
+            Concluir pedido
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Antes de continuar, confirme que o pagamento já foi realizado. Isso leva menos de 1
@@ -147,30 +121,6 @@ function FormularioPage() {
                 />
               </Field>
 
-              <Field label="Comprovante de pagamento" htmlFor="arquivo">
-                <label
-                  htmlFor="arquivo"
-                  className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-border bg-background px-4 py-4 text-sm transition-colors hover:border-accent/60"
-                >
-                  <span className="flex items-center gap-3 text-muted-foreground">
-                    <Upload className="h-4 w-4" />
-                    {arquivo ? (
-                      <span className="text-foreground">{arquivo.name}</span>
-                    ) : (
-                      <span>Selecione seu comprovante</span>
-                    )}
-                  </span>
-                  <span className="text-xs text-muted-foreground">JPG · PNG · PDF · 10 MB</span>
-                </label>
-                <input
-                  id="arquivo"
-                  type="file"
-                  accept="image/jpeg,image/png,application/pdf"
-                  className="sr-only"
-                  onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-                />
-              </Field>
-
               <button
                 type="submit"
                 disabled={submitting}
@@ -181,7 +131,7 @@ function FormularioPage() {
                     <Loader2 className="h-4 w-4 animate-spin" /> Enviando...
                   </>
                 ) : (
-                  "Enviar comprovante"
+                  "Concluir pedido"
                 )}
               </button>
             </fieldset>
@@ -218,9 +168,9 @@ function SuccessScreen() {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent">
           <CheckCircle2 className="h-7 w-7" />
         </div>
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight">Pagamento registrado</h1>
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight">Pedido concluído</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Seu comprovante foi enviado com sucesso. Nossa equipe fará a conferência do pagamento.
+          Seu pedido foi enviado com sucesso. Nossa equipe fará a conferência do pagamento.
           <br />
           <br />
           Muito obrigado por contribuir com nossa missão. Que Deus abençoe sua família.
