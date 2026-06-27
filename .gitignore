@@ -15,7 +15,6 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
- netlify/functions/dist
 !.vscode/extensions.json
 .idea
 .DS_Store
