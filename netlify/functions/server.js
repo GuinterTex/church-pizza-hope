@@ -1,4 +1,10 @@
-import server from '../../dist/server/server.js';
+async function getServer() {
+  const serverModule = await import('../../dist/server/server.js');
+  const server = serverModule.default ?? serverModule;
+  if (typeof server.fetch === 'function') return server;
+  if (server && typeof server.default?.fetch === 'function') return server.default;
+  throw new Error('Unable to resolve server fetch handler from dist/server/server.js');
+}
 
 function getUrl(event) {
   const host = event.headers?.host ?? 'localhost';
@@ -72,6 +78,7 @@ export async function handler(event) {
   }
 
   const request = new Request(getUrl(event), requestInit);
+  const server = await getServer();
 
   const response = await server.fetch(request, {}, {});
   return toNetlifyResponse(response);
