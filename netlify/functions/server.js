@@ -2,8 +2,9 @@ import server from '../../dist/server/server.js';
 
 function getUrl(event) {
   const host = event.headers?.host ?? 'localhost';
-  const protocol = event.headers?.x-forwarded-proto ?? 'https';
-  const url = new URL(`${protocol}://${host}${event.path}`);
+  const protocol = event.headers?.['x-forwarded-proto'] ?? 'https';
+  const path = event.path ?? event.rawPath ?? '/';
+  const url = new URL(`${protocol}://${host}${path}`);
   const query = event.queryStringParameters ?? {};
   for (const [key, value] of Object.entries(query)) {
     if (value != null) {
