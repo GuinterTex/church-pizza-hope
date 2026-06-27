@@ -60,11 +60,18 @@ function toNetlifyResponse(response) {
 }
 
 export async function handler(event) {
-  const request = new Request(getUrl(event), {
-    method: event.httpMethod,
+  const method = (event.httpMethod ?? 'GET').toUpperCase();
+  const requestInit = {
+    method,
     headers: normalizeHeaders(event.headers),
-    body: getRequestBody(event),
-  });
+  };
+
+  const body = getRequestBody(event);
+  if (body != null && !['GET', 'HEAD'].includes(method)) {
+    requestInit.body = body;
+  }
+
+  const request = new Request(getUrl(event), requestInit);
 
   const response = await server.fetch(request, {}, {});
   return toNetlifyResponse(response);
