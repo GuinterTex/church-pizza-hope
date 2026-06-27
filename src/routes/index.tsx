@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Check, Heart } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { config } from "@/config";
 
 export const Route = createFileRoute("/")({
@@ -60,7 +60,7 @@ function IndexPage() {
         <section className="fade-in flex flex-col gap-10">
           <header className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card">
-              <Heart className="h-4 w-4 text-accent" aria-hidden />
+              <DoveIcon className="h-4 w-4 text-accent" aria-hidden />
             </div>
             <span className="font-medium tracking-wide">{config.IGREJA}</span>
           </header>
@@ -148,6 +148,26 @@ function IndexPage() {
         </aside>
       </div>
     </main>
+  );
+}
+
+function DoveIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+    </svg>
   );
 }
 
