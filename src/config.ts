@@ -6,7 +6,7 @@
 export const config = {
   PIX_KEY: "45991271068",
   VALOR_PIZZA: "R$ 40,00",
-  IGREJA: "Igreja Lagoinha Toledo - PR",
+  IGREJA: "Igreja Lagoinha Toledo · PR",
 
   GOOGLE_SCRIPT_URL:
     "https://script.google.com/macros/s/AKfycbyFphSXA8HRnDKAx-wUXUqbEG7LzcQWG1OmeAfqZo6uADb_-v6HyJVEadmwjNO5x2o6Jg/exec",

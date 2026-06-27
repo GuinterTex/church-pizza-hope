@@ -70,9 +70,9 @@ function IndexPage() {
               Pizza Solidária
             </h1>
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Uma pizza pode alimentar muito mais do que pessoas.
+              Uma pizza que alimenta muito mais do que a fome.
               <br className="hidden md:block" />
-              Ao participar, você fortalece nossa missão e ajuda a transformar vidas.
+              Ao participar, você ajuda a fortalecer nossa igreja e a crescer o Reino aqui em Toledo.
             </p>
           </div>
 
