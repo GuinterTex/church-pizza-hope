@@ -1,27 +1,27 @@
-import { Buffer } from 'node:buffer';
+import { Buffer } from "node:buffer";
 
 async function getServer() {
-  const serverModule = await import('../dist/server/server.js');
+  const serverModule = await import("../dist/server/server.js");
   const server = serverModule.default ?? serverModule;
-  if (typeof server.fetch === 'function') return server;
-  if (server && typeof server.default?.fetch === 'function') return server.default;
-  throw new Error('Unable to resolve server fetch handler from dist/server/server.js');
+  if (typeof server.fetch === "function") return server;
+  if (server && typeof server.default?.fetch === "function") return server.default;
+  throw new Error("Unable to resolve server fetch handler from dist/server/server.js");
 }
 
 function getUrl(req) {
-  const host = req.headers.host ?? 'localhost';
-  const protocol = req.headers['x-forwarded-proto'] ?? (req.socket?.encrypted ? 'https' : 'http');
-  const path = req.url ?? '/';
+  const host = req.headers.host ?? "localhost";
+  const protocol = req.headers["x-forwarded-proto"] ?? (req.socket?.encrypted ? "https" : "http");
+  const path = req.url ?? "/";
   return new URL(`${protocol}://${host}${path}`);
 }
 
 function getRequestBody(req) {
-  if (req.method === 'GET' || req.method === 'HEAD') return null;
+  if (req.method === "GET" || req.method === "HEAD") return null;
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', (chunk) => chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
+    req.on("data", (chunk) => chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
   });
 }
 
@@ -51,14 +51,14 @@ function toNodeResponse(response, res) {
 
 export default async function handler(req, res) {
   try {
-    const method = (req.method ?? 'GET').toUpperCase();
+    const method = (req.method ?? "GET").toUpperCase();
     const requestInit = {
       method,
       headers: normalizeHeaders(req.headers),
     };
 
     const body = await getRequestBody(req);
-    if (body != null && !['GET', 'HEAD'].includes(method)) {
+    if (body != null && !["GET", "HEAD"].includes(method)) {
       requestInit.body = body;
     }
 
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error(error);
     res.statusCode = 500;
-    res.setHeader('content-type', 'text/html; charset=utf-8');
-    res.end('<h1>Internal Server Error</h1>');
+    res.setHeader("content-type", "text/html; charset=utf-8");
+    res.end("<h1>Internal Server Error</h1>");
   }
 }

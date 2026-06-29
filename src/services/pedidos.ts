@@ -3,6 +3,7 @@ import { config } from "@/config";
 export interface PedidoInput {
   nome: string;
   telefone: string;
+  tipo: "doacao" | "retirada";
 }
 
 export interface PedidoResult {
@@ -10,7 +11,7 @@ export interface PedidoResult {
   message: string;
 }
 
-export async function enviarPedido({ nome, telefone }: PedidoInput): Promise<PedidoResult> {
+export async function enviarPedido({ nome, telefone, tipo }: PedidoInput): Promise<PedidoResult> {
   if (!config.GOOGLE_SCRIPT_URL) {
     throw new Error("URL do Google Apps Script não configurada.");
   }
@@ -18,6 +19,7 @@ export async function enviarPedido({ nome, telefone }: PedidoInput): Promise<Ped
   const formData = new FormData();
   formData.append("nome", nome.trim());
   formData.append("telefone", telefone.trim());
+  formData.append("tipo", tipo);
 
   // O endpoint remoto ainda pode exigir campos de comprovante.
   // Enviamos um comprovante mínimo válido por trás da cena para evitar validações antigas.

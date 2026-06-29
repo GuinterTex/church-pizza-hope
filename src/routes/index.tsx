@@ -72,10 +72,10 @@ function IndexPage() {
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
               Uma pizza que alimenta muito mais do que a fome.
               <br className="hidden md:block" />
-              Ao participar, você ajuda a fortalecer nossa igreja e a crescer o Reino aqui em Toledo.
+              Ao participar, você ajuda a fortalecer nossa igreja e a crescer o Reino aqui em
+              Toledo.
             </p>
           </div>
-
 
           <article className="rounded-2xl border border-border bg-card p-6 md:p-7">
             <div className="flex items-baseline justify-between gap-4">
@@ -99,9 +99,7 @@ function IndexPage() {
         <aside className="fade-in lg:sticky lg:top-12 lg:self-start">
           <div className="rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-soft)] md:p-9">
             <h2 className="text-2xl font-semibold tracking-tight">Finalizar contribuição</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Escolha a forma de pagamento.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">Escolha a forma de pagamento.</p>
 
             <button
               onClick={handlePix}
@@ -117,12 +115,8 @@ function IndexPage() {
             </button>
 
             <div className="mt-6 rounded-xl border border-border bg-background/40 p-4">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                Chave PIX
-              </p>
-              <p className="mt-1 break-all font-mono text-sm text-foreground">
-                {config.PIX_KEY}
-              </p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Chave PIX</p>
+              <p className="mt-1 break-all font-mono text-sm text-foreground">{config.PIX_KEY}</p>
             </div>
 
             {counting && (

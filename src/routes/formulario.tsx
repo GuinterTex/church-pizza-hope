@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Check, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { enviarPedido } from "@/services/pedidos";
 
 export const Route = createFileRoute("/formulario")({
@@ -20,36 +20,36 @@ export const Route = createFileRoute("/formulario")({
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(120),
-  telefone: z
-    .string()
-    .trim()
-    .min(10, "Telefone inválido")
-    .max(20, "Telefone inválido"),
+  telefone: z.string().trim().min(10, "Telefone inválido").max(20, "Telefone inválido"),
 });
 
 function FormularioPage() {
-  const [confirmed, setConfirmed] = useState(false);
+  const [tipo, setTipo] = useState<"doacao" | "retirada" | null>(null);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [dadosEnviados, setDadosEnviados] = useState<{ nome: string; telefone: string } | null>(null);
+  const [dadosEnviados, setDadosEnviados] = useState<{ nome: string; telefone: string } | null>(
+    null,
+  );
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
 
   const pedidoEnviado =
-    !!dadosEnviados &&
-    dadosEnviados.nome === nome &&
-    dadosEnviados.telefone === telefone;
+    !!dadosEnviados && dadosEnviados.nome === nome && dadosEnviados.telefone === telefone;
 
   function resetarFluxo() {
     setNome("");
     setTelefone("");
     setDadosEnviados(null);
     setPedidoConfirmado(false);
-    setConfirmed(false);
+    setTipo(null);
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (tipo === null) {
+      toast.error("Escolha Doação ou Retirada antes de enviar.");
+      return;
+    }
     const parsed = schema.safeParse({ nome, telefone });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Verifique os dados");
@@ -57,7 +57,7 @@ function FormularioPage() {
     }
     setSubmitting(true);
     try {
-      await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone });
+      await enviarPedido({ nome: parsed.data.nome, telefone: parsed.data.telefone, tipo });
       setDadosEnviados({ nome: parsed.data.nome, telefone: parsed.data.telefone });
       setPedidoConfirmado(true);
     } catch (err) {
@@ -93,9 +93,7 @@ function FormularioPage() {
         </Link>
 
         <div className="fade-in rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-soft)] md:p-9">
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            Concluir pedido
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Concluir pedido</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Antes de continuar, confirme que o pagamento já foi realizado. Isso leva menos de 1
             minuto.
@@ -103,24 +101,37 @@ function FormularioPage() {
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             <div>
-              <p className="text-sm font-medium text-foreground">
-                Você já realizou o pagamento?
-              </p>
-              <button
-                type="button"
-                onClick={() => setConfirmed(true)}
-                disabled={confirmed}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-5 py-3 text-sm font-medium text-accent transition-all hover:scale-[1.02] hover:bg-accent/20 disabled:cursor-default disabled:opacity-100"
-              >
-                {confirmed ? <Check className="h-4 w-4" /> : null}
-                {confirmed ? "Pagamento confirmado" : "Sim, já realizei o pagamento"}
-              </button>
+              <p className="text-sm font-medium text-foreground">Selecione:</p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setTipo("doacao")}
+                  aria-pressed={tipo === "doacao"}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-all hover:scale-[1.02] ${
+                    tipo === "doacao"
+                      ? "border-transparent bg-[#FCD201] text-[#0F1115]"
+                      : "border-accent/30 bg-accent/10 text-accent"
+                  }`}
+                >
+                  Doação
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTipo("retirada")}
+                  aria-pressed={tipo === "retirada"}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-all hover:scale-[1.02] ${
+                    tipo === "retirada"
+                      ? "border-transparent bg-[#FCD201] text-[#0F1115]"
+                      : "border-accent/30 bg-accent/10 text-accent"
+                  }`}
+                >
+                  Retirada
+                </button>
+              </div>
             </div>
 
-            <fieldset
-              disabled={!confirmed}
-              className="space-y-5 transition-opacity disabled:opacity-50"
-            >
+            <fieldset disabled={!tipo} className="space-y-5 transition-opacity disabled:opacity-50">
               <Field label="Nome completo" htmlFor="nome">
                 <input
                   id="nome"
@@ -217,7 +228,10 @@ function Field({
 }) {
   return (
     <div className="space-y-2">
-      <label htmlFor={htmlFor} className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <label
+        htmlFor={htmlFor}
+        className="block text-xs font-medium uppercase tracking-wider text-muted-foreground"
+      >
         {label}
       </label>
       {children}
