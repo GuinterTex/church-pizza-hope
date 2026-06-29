@@ -24,7 +24,7 @@ const schema = z.object({
 });
 
 function FormularioPage() {
-  const [tipo, setTipo] = useState<"doacao" | "retirada" | null>(null);
+  const [tipo, setTipo] = useState<"oferta" | "retirada" | null>(null);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -105,15 +105,15 @@ function FormularioPage() {
               <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => setTipo("doacao")}
-                  aria-pressed={tipo === "doacao"}
+                  onClick={() => setTipo("oferta")}
+                  aria-pressed={tipo === "oferta"}
                   className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-all hover:scale-[1.02] ${
-                    tipo === "doacao"
+                    tipo === "oferta"
                       ? "border-transparent bg-[#FCD201] text-[#0F1115]"
                       : "border-accent/30 bg-accent/10 text-accent"
                   }`}
                 >
-                  Doação
+                  Oferta
                 </button>
 
                 <button

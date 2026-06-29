@@ -3,7 +3,7 @@ import { config } from "@/config";
 export interface PedidoInput {
   nome: string;
   telefone: string;
-  tipo: "doacao" | "retirada";
+  tipo: "oferta" | "retirada";
 }
 
 export interface PedidoResult {
